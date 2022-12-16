@@ -1,0 +1,14 @@
+spring:
+
+  springdoc:
+    version: '@springdoc.version@'
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${jwk.set.uri}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"

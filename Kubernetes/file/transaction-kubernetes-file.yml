@@ -1,0 +1,138 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: transaction
+    namespace: prod    
+    labels:
+        app: transaction
+        version: v1
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: transaction
+            version: v1
+    template:
+        metadata:
+            annotations:
+                prometheus.io/path: /actuator/prometheus
+                prometheus.io/scrape: "true"
+                prometheus.io/port: "8084"        
+            labels:
+                app: transaction
+                version: v1
+        spec:
+          serviceAccountName: transaction        
+          containers:
+          - name: transaction
+            image: sunday/transaction
+            imagePullPolicy: Never
+            ports:
+            - containerPort: 8084            
+            env:
+              - name: spring.config.import
+                value: optional:configserver:http://cloud-config:8888
+              - name: spring.profiles.active
+                value: prod,localCache
+              - name: spring.cloud.config.profile
+                value: prod,localCache
+              - name: JDK_JAVA_OPTIONS
+                value: -XX:+UseZGC -XX:MaxMetaspaceSize=256m -XX:+DisableExplicitGC -XX:MaxRAMPercentage=60 -verbose:gc -Xss256k -Dreactor.netty.pool.maxLifeTime=10000
+            resources:
+              requests:
+                memory: 200Mi
+              limits:
+                memory: 1Gi
+            livenessProbe:
+              httpGet:
+                path: /actuator/health/liveness
+                port: 8084
+              timeoutSeconds: 60
+              initialDelaySeconds: 300
+              periodSeconds: 5
+            readinessProbe:
+              httpGet:
+                path: /actuator/health/readiness
+                port: 8084
+              timeoutSeconds: 60
+              initialDelaySeconds: 300
+            volumeMounts:
+            - mountPath: /usr/java/openjdk-18/lib/security
+              name: copy
+          initContainers:
+          - name: init-cacerts
+            image: sunday/transaction
+            imagePullPolicy: Never
+            resources:
+              requests:
+                memory: 50Mi
+              limits:
+                memory: 100Mi
+            command:
+            - bash
+            - -c
+            - |
+              cp -R /usr/java/openjdk-18/lib/security/* /cacerts/
+              keytool -import -noprompt -trustcacerts -alias local -file /security/tls.crt -keystore /cacerts/cacerts -storepass changeit
+              cp  cacerts/* /copy
+               keytool -list -keystore /cacerts/cacerts -alias local
+            volumeMounts:
+            - mountPath: /cacerts
+              name: cacerts
+            - mountPath: /copy
+              name: copy
+            - mountPath: /security
+              name: tls
+          volumes:
+          - name: cacerts
+            emptyDir: {}
+          - name: copy
+            emptyDir: {}
+          - name: tls
+            secret:
+              secretName: keycloak-tls
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: transaction
+    service: transaction
+  name: transaction
+  namespace: prod
+spec:
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8084
+    appProtocol: http
+  selector:
+    app: transaction
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  namespace: prod
+  name: transaction
+  labels:
+    account: transaction
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: transaction
+  namespace: prod
+spec:
+  hosts:
+  - transaction.prod.svc.cluster.local
+  gateways:
+  - mesh
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 80
+        host: transaction.prod.svc.cluster.local

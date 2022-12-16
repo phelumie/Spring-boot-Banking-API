@@ -1,0 +1,221 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: keycloak
+  namespace: prod
+  labels:
+    app: keycloak
+    version: v1
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: keycloak
+      version: v1
+  template:
+    metadata:
+      annotations:
+        prometheus.io/path: /metrics
+        prometheus.io/scrape: "true"
+        prometheus.io/scheme: "https"
+        prometheus.io/port: "8443"  
+      labels:
+        app: keycloak
+        version: v1
+    spec:
+      volumes:
+        - name: keycloak-secret-pem
+          secret:
+            secretName: keycloak-pem
+      serviceAccountName: jgroups-kubeping-service-account
+      containers:
+      - name:  keycloak
+        image: quay.io/keycloak/keycloak:19.0.2
+        args: ["start "]
+        env:
+        - name: KEYCLOAK_ADMIN
+          value: "admin"
+        - name: KEYCLOAK_ADMIN_PASSWORD
+          value: "admin"
+        - name: KEYCLOAK_USER
+          value: "user"
+        - name: KEYCLOAK_PASSWORD
+          value: "user"
+        - name: PROXY_ADDRESS_FORWARDING
+          value: "true"
+        - name: KC_DB
+          value: mysql
+        - name: KC_DB_PASSWORD
+          value: test1234
+        - name: KC_DB_SCHEMA
+          value: keycloak
+        - name: KC_DB_USERNAME
+          value: root
+        - name: KC_DB_URL
+          value: jdbc:mysql://docker-mysql:3306/keycloak
+        - name: KC_TRANSACTION_XA_ENABLED
+          value: "true"
+        - name: KC_HTTPS_PROTOCOLS
+          value: TLSv1.3
+        - name: KC_HTTPS_CERTIFICATE_FILE
+          value: /opt/keycloak/conf/public.pem
+        - name: KC_HTTPS_CERTIFICATE_KEY_FILE
+          value: /opt/keycloak/conf/private.pem
+        - name: KC_PROXY
+          value: "reencrypt"
+        - name: KC_LOG_LEVEL
+          value:  INFO,org.infinispan:DEBUG,org.jgroups:DEBUG
+        - name: KC_HTTPS_PORT
+          value: "8443"
+        - name: KC_HOSTNAME
+          value: "dashboard.com"
+        - name: KC_HOSTNAME_ADMIN
+          value: "admin.com"
+        - name: KC_HOSTNAME_STRICT
+          value: "true"
+        - name: KC_HOSTNAME_STRICT_BACKCHANNEL
+          value: "true"
+        - name: KC_HEALTH_ENABLED
+          value: "true"
+        - name: KC_METRICS_ENABLED
+          value: "true"
+        - name: KEYCLOAK_FRONTEND_URL 
+          value: "dashboard.com"
+        - name: JGROUPS_DISCOVERY_PROTOCOL
+          value: kubernetes.KUBE_PING
+        - name: CACHE_OWNERS_COUNT
+          value: "2"
+        - name: KUBERNETES_NAMESPACE
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: metadata.namespace  
+        - name: JAVA_OPTS_APPEND
+          value: -server -Xmx512m -Xms128m -XX:+UseG1GC
+        ports:
+        - name: jgroups
+          containerPort: 7800
+        - name: http
+          containerPort: 8080
+        - name: https
+          containerPort: 8443
+        readinessProbe:
+          httpGet:
+            path: /realms/master
+            port: 8443
+            scheme: HTTPS
+          initialDelaySeconds: 600 
+          periodSeconds: 10
+        volumeMounts:
+          - name: keycloak-secret-pem
+            mountPath: /opt/keycloak/conf/    
+---
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: jgroups-kubeping-service-account
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: jgroups-kubeping-pod-reader
+rules:
+- apiGroups: [""]
+  resources: ["pods"]
+  verbs: ["get", "list"]
+---
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: jgroups-kubeping-api-access
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: jgroups-kubeping-pod-reader
+subjects:
+- kind: ServiceAccount
+  name: jgroups-kubeping-service-account
+  namespace: prod  
+---
+kubectl label namespace ingress-nginx istio-injection=enabled --overwrite
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: keycloak
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTPS"
+    nginx.ingress.kubernetes.io/ssl-passthrough: "true"
+    nginx.ingress.kubernetes.io/service-upstream: "true"
+spec:
+  tls:
+    - hosts: 
+      - dashboard.com
+      secretName: keycloak-tls  
+  rules:
+  - host: dashboard.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: keycloak
+            port:
+              number: 443
+  - host: admin.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: keycloak
+            port:
+              number: 443
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: keycloak
+  namespace: prod
+spec:
+  hosts:
+  - keycloak.default.svc.cluster.local
+  gateways:
+  - mesh
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 443
+        host: keycloak.default.svc.cluster.local
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: keycloak
+  labels:
+    app: keycloak
+spec:
+  ports:
+  - name: http
+    port: 8080
+    targetPort: 8080
+  - name: https
+    port: 443
+    targetPort: 8443
+    appProtocol: https
+  selector:
+    app: keycloak
+    version: v1
+  type: ClusterIP
+
+
+
+

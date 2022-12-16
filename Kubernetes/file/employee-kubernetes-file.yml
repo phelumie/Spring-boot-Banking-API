@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: employee
+    namespace: prod
+    labels:
+        app: employee
+        version: v1
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: employee
+            version: v1
+    template:
+        metadata:
+            annotations:
+                prometheus.io/path: /actuator/prometheus
+                prometheus.io/scrape: "true"
+                prometheus.io/port: "8082"
+            labels:
+                app: employee
+                version: v1
+        spec:
+          containers:
+          - name: employee
+            image: sunday/employee
+            imagePullPolicy: Never
+            env:
+              - name: spring.config.import
+                value: optional:configserver:http://cloud-config:8888
+              - name: spring.profiles.active
+                value: prod,localCache
+              - name: spring.cloud.config.profile
+                value: prod,localCache
+              - name: JDK_JAVA_OPTIONS
+                value: -XX:+UseZGC -XX:MaxMetaspaceSize=256m -XX:+DisableExplicitGC -XX:MaxRAMPercentage=60 -Xss256k -verbose:gc
+              - name: keycloak.credentials.secret
+                valueFrom:
+                  secretKeyRef:
+                    name: microservices-secrets
+                    key: keycloak-idm-client-key
+              - name: sendgrid.key
+                valueFrom:
+                  secretKeyRef:
+                    name: microservices-secrets
+                    key: sendgrid-apikey            
+            volumeMounts:
+            - mountPath: /usr/java/openjdk-18/lib/security
+              name: copy
+          initContainers:
+          - name: init-cacerts
+            image: sunday/employee
+            imagePullPolicy: Never
+            resources:
+              requests:
+                memory: 200Mi
+              limits:
+                memory: 1Gi
+            command:
+            - bash
+            - -c
+            - |
+              cp -R /usr/java/openjdk-18/lib/security/* /cacerts/
+              keytool -import -noprompt -trustcacerts -alias local -file /security/tls.crt -keystore /cacerts/cacerts -storepass changeit
+              cp  cacerts/* /copy
+               keytool -list -keystore /cacerts/cacerts -alias local
+            volumeMounts:
+            - mountPath: /cacerts
+              name: cacerts
+            - mountPath: /copy
+              name: copy
+            - mountPath: /security
+              name: tls
+          volumes:
+          - name: cacerts
+            emptyDir: {}
+          - name: copy
+            emptyDir: {}
+          - name: tls
+            secret:
+              secretName: keycloak-tls
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: employee
+    namespace: prod
+    labels:
+        app: employee
+spec:
+    type: LoadBalancer
+    ports:
+        - port: 80
+          targetPort: 8082         
+    selector:
+        app: employee
+        version: v1
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: employee
+  namespace: prod
+spec:
+  hosts:
+  - employee.prod.svc.cluster.local
+  gateways:
+  - mesh
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 80
+        host: employee.prod.svc.cluster.local

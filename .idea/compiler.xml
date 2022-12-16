@@ -1,0 +1,46 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="CompilerConfiguration">
+    <annotationProcessing>
+      <profile default="true" name="Default" enabled="true" />
+      <profile name="Maven default annotation processors profile" enabled="true">
+        <sourceOutputDir name="target/generated-sources/annotations" />
+        <sourceTestOutputDir name="target/generated-test-sources/test-annotations" />
+        <outputRelativeToContentRoot value="true" />
+        <module name="Employee" />
+        <module name="Loan" />
+        <module name="Transaction" />
+        <module name="Customer" />
+        <module name="common-dto" />
+        <module name="Issues" />
+        <module name="eureka-naming-server" />
+        <module name="spring-cloud-config-server" />
+        <module name="api-gateway" />
+      </profile>
+    </annotationProcessing>
+    <bytecodeTargetLevel>
+      <module name="api-gateway" target="11" />
+      <module name="common-dto" target="11" />
+      <module name="Customer" target="11" />
+      <module name="Employee" target="11" />
+      <module name="eureka-naming-server" target="11" />
+      <module name="Issues" target="11" />
+      <module name="Loan" target="11" />
+      <module name="spring-cloud-config-server" target="11" />
+      <module name="Transaction" target="11" />
+    </bytecodeTargetLevel>
+  </component>
+  <component name="JavacSettings">
+    <option name="ADDITIONAL_OPTIONS_OVERRIDE">
+      <module name="Customer" options="-parameters" />
+      <module name="Employee" options="-parameters" />
+      <module name="Issues" options="-parameters" />
+      <module name="Loan" options="-parameters" />
+      <module name="Transaction" options="-parameters" />
+      <module name="api-gateway" options="-parameters" />
+      <module name="common-dto" options="-parameters" />
+      <module name="eureka-naming-server" options="-parameters" />
+      <module name="spring-cloud-config-server" options="-parameters" />
+    </option>
+  </component>
+</project>

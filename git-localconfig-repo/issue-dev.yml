@@ -1,0 +1,19 @@
+spring:
+  data:
+    mongodb:
+      database: issues
+      host: localhost
+      port: 27017
+      username: admin
+      password: password
+      authentication-database: admin
+#      uri: mongodb://admin:password@localhost:27017/issues
+logging:
+  level:
+    org:
+      springframework:
+        data:
+          mongodb:
+            core:
+              MongoTemplate: DEBUG
+              ReactiveMongoTemplate: DEBUG

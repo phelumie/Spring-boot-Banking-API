@@ -1,0 +1,59 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: prometheus-grafana
+  namespace: prometheus-operator
+spec:
+  selector:
+    istio: ingressgateway # use istio default ingress gateway
+  servers:
+  - port:
+      number: 443
+      name: https-keycloak
+      protocol: HTTPS
+    tls:
+      mode: SIMPLE
+      credentialName: secret-tls
+    hosts:
+    - prometheus-monitoring.com
+    - grafana-monitoring.com
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: prometheus
+  namespace: prometheus-operator
+spec:
+  hosts:
+  - "prometheus-monitoring.com"
+  gateways:
+  - prometheus-grafana
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 9090
+        host: prometheus-operator-kube-p-prometheus
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: grafana
+  namespace: prometheus-operator
+spec:
+  hosts:
+  - "grafana-monitoring.com"
+  gateways:
+  - prometheus-grafana
+  http:
+  - match:
+    - uri:
+        prefix: /
+    route:
+    - destination:
+        port:
+          number: 3000
+        host: prometheus-operator-grafana      

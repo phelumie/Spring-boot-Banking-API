@@ -1,0 +1,109 @@
+spring:
+  redis:
+    connect-timeout: 1s
+    host: localhost
+    port: 6379
+    timeout: 1000ms
+#  security:
+#    oauth2:
+#      client:
+#        provider:
+#          my-keycloak-provider-customer:
+#            issuer-uri: http://keycloak:8080/realms/Springboot-bank-microservices
+#            issuer-uri: https://dashboard.com/realms/Springboot-bank-microservices
+#            issuer-uri: ${keycloakIssuerUri}
+#        registration:
+#          keycloak-spring-gateway-client-customer:
+#            provider: my-keycloak-provider-customer
+#            client-id: springboot-bank-customer
+#            client-id: front-end
+#            client-secret: ${keycloakClientSecret}
+#            authorization-grant-type: authorization_code
+#            redirect-uri: "{baseUrl}/login/oauth2/code/keycloak"
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${jwk.set.uri}
+
+logging:
+    level:
+      org:
+        springframework:
+          security:
+            web: DEBUG
+
+
+cache:
+  redisHost: localhost
+
+
+
+rateLimiter:
+  ttl: 30
+
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always
+
+
+
+
+resilience4j:
+  circuitbreaker:
+    instances:
+      customer-service:
+        registerHealthIndicator: true
+        eventConsumerBufferSize: 10
+        failureRateThreshold: 50
+        minimumNumberOfCalls: 5
+        automaticTransitionFromOpenToHalfOpenEnabled: true
+        waitDurationInOpenState: 1s
+        permittedNumberOfCallsInHalfOpenState: 3
+        slidingWindowSize: 10
+        slidingWindowType: COUNT_BASED
+#
+resilience4j.timelimiter:
+  configs:
+    default:
+      cancelRunningFuture: false
+      timeoutDuration: 10s
+
+
+#  ratelimiter:
+#    instances:
+#      serviceA:
+#        registerHealthIndicator: false
+#        limitForPeriod: 10
+#        limitRefreshPeriod: 10s
+#        timeoutDuration: 3s
+
+server:
+  servlet:
+    context-path: "/${spring.application.api-version}"
+#server:
+#  ssl:
+#    key-alias: keystore
+#    key-store: classpath:keycloak-cert.jks
+#    key-store-type: JKS
+#    key-password: test1234
+
+
+#
+#springdoc:
+#  version: '@springdoc.version@'
+#  swagger-ui:
+#    use-root-path: true
+#    configUrl: "/swagger-config.json"
+
+

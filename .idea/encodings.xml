@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="Encoding">
+    <file url="file://$PROJECT_DIR$/Api-gateway/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Api-gateway/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Common-dto/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Common-dto/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Customer/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Customer/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Employee/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Employee/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Eureka-naming-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Eureka-naming-server/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Issues/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Issues/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Loan/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Loan/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Spring-cloud-config-server/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Spring-cloud-config-server/src/main/resources" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Transaction/src/main/java" charset="UTF-8" />
+    <file url="file://$PROJECT_DIR$/Transaction/src/main/resources" charset="UTF-8" />
+  </component>
+</project>

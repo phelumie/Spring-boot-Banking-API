@@ -1,0 +1,37 @@
+spring:
+  rabbitmq:
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 2s
+          max-attempts: 5
+          max-interval: 5s
+          multiplier: 1
+  springdoc:
+    version: '@springdoc.version@'
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          jwk-set-uri: ${jwk.set.uri}
+
+resilience4j:
+  retry:
+    instances:
+      customer-service:
+        registerHealthIndicator: true
+        maxRetryAttempts: 5
+        waitDuration: 10s
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+  health:
+    circuitbreakers:
+      enabled: true
+  endpoint:
+    health:
+      show-details: always

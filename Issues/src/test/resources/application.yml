@@ -1,0 +1,17 @@
+spring:
+  springdoc:
+    version: '@springdoc.version@'
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+#          jwk-set-uri: http://keycloak:8080/realms/Springboot-bank-microservices/protocol/openid-connect/certs
+          jwk-set-uri: ${jwk.set.uri}
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "*"
+
+
+

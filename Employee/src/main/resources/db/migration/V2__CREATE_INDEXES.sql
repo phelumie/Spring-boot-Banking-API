@@ -1,0 +1,1 @@
+CREATE INDEX employee_index ON employee(email);

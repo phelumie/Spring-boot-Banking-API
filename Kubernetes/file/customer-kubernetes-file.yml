@@ -1,0 +1,119 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+    name: customer
+    namespace: prod
+    labels:
+        app: customer
+        version: v1
+spec:
+    replicas: 1
+    selector:
+        matchLabels:
+            app: customer
+            version: v1
+    template:
+        metadata:
+            annotations:
+                prometheus.io/path: /actuator/prometheus
+                prometheus.io/scrape: "true"
+                prometheus.io/port: "8081"
+            labels:
+                app: customer
+                version: v1
+        spec:
+          containers:
+          - name: customer
+            image: sunday/customer
+            imagePullPolicy: Never
+            env:
+              - name: spring.config.import
+                value: optional:configserver:http://cloud-config:8888
+              - name: spring.profiles.active
+                value: prod,localCache
+              - name: spring.cloud.config.profile
+                value: prod,localCache
+              - name: keycloak.credentials.secret
+                valueFrom:
+                  secretKeyRef:
+                    name: microservices-secrets
+                    key: keycloak-idm-client-key
+              - name: sendgrid.key
+                valueFrom:
+                  secretKeyRef:
+                    name: microservices-secrets
+                    key: sendgrid-apikey
+              - name: JDK_JAVA_OPTIONS
+                value: -XX:+UseZGC -XX:MaxMetaspaceSize=256m -XX:+DisableExplicitGC -XX:MaxRAMPercentage=60 -Xss256k -verbose:gc
+            resources:
+              requests:
+                memory: 200Mi
+              limits:
+                memory: 1Gi
+            livenessProbe:
+              httpGet:
+                path: /actuator/health/liveness
+                port: 8081
+              initialDelaySeconds: 300
+              periodSeconds: 5
+              timeoutSeconds: 60
+            readinessProbe:
+              httpGet:
+                path: /actuator/health/readiness
+                port: 8081
+              timeoutSeconds: 60
+              initialDelaySeconds: 300
+            volumeMounts:
+            - mountPath: /usr/java/openjdk-18/lib/security
+              name: copy
+          initContainers:
+          - name: init-cacerts
+            image: sunday/customer
+            imagePullPolicy: Never
+            resources:
+              requests:
+                memory: 200Mi
+              limits:
+                memory: 300Mi
+            command:
+            - bash
+            - -c
+            - |
+              cp -R /usr/java/openjdk-18/lib/security/* /cacerts/
+              keytool -import -noprompt -trustcacerts -alias local -file /security/tls.crt -keystore /cacerts/cacerts -storepass changeit
+              cp  cacerts/* /copy
+               keytool -list -keystore /cacerts/cacerts -alias local
+            volumeMounts:
+            - mountPath: /cacerts
+              name: cacerts
+            - mountPath: /copy
+              name: copy
+            - mountPath: /security
+              name: tls
+          volumes:
+          - name: cacerts
+            emptyDir: {}
+          - name: copy
+            emptyDir: {}
+          - name: tls
+            secret:
+              secretName: keycloak-tls
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+    name: customer
+    namespace: prod
+    labels:
+        app: customer
+spec:
+    type: LoadBalancer
+    ports:
+        - name: http-web
+          port: 80
+          targetPort: 8081
+          appProtocol: http
+    selector:
+        app: customer
+        version: v1

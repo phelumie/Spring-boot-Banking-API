@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="ProjectModuleManager">
+    <modules>
+      <module fileurl="file://$PROJECT_DIR$/Customer/Customer.iml" filepath="$PROJECT_DIR$/Customer/Customer.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Employee/Employee.iml" filepath="$PROJECT_DIR$/Employee/Employee.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Issues/Issues.iml" filepath="$PROJECT_DIR$/Issues/Issues.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Loan/Loan.iml" filepath="$PROJECT_DIR$/Loan/Loan.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Transaction/Transaction.iml" filepath="$PROJECT_DIR$/Transaction/Transaction.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Api-gateway/api-gateway.iml" filepath="$PROJECT_DIR$/Api-gateway/api-gateway.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Common-dto/common-dto.iml" filepath="$PROJECT_DIR$/Common-dto/common-dto.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Eureka-naming-server/eureka-naming-server.iml" filepath="$PROJECT_DIR$/Eureka-naming-server/eureka-naming-server.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/micro.iml" filepath="$PROJECT_DIR$/.idea/micro.iml" />
+      <module fileurl="file://$PROJECT_DIR$/Spring-cloud-config-server/spring-cloud-config-server.iml" filepath="$PROJECT_DIR$/Spring-cloud-config-server/spring-cloud-config-server.iml" />
+    </modules>
+  </component>
+</project>

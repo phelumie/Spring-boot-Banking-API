@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="MavenProjectsManager">
+    <option name="originalFiles">
+      <list>
+        <option value="$PROJECT_DIR$/Loan/pom.xml" />
+        <option value="$PROJECT_DIR$/Issues/pom.xml" />
+        <option value="$PROJECT_DIR$/Customer/pom.xml" />
+        <option value="$PROJECT_DIR$/Employee/pom.xml" />
+        <option value="$PROJECT_DIR$/Common-dto/pom.xml" />
+        <option value="$PROJECT_DIR$/Api-gateway/pom.xml" />
+        <option value="$PROJECT_DIR$/Transaction/pom.xml" />
+        <option value="$PROJECT_DIR$/Eureka-naming-server/pom.xml" />
+        <option value="$PROJECT_DIR$/Spring-cloud-config-server/pom.xml" />
+      </list>
+    </option>
+  </component>
+  <component name="ProjectRootManager" version="2" languageLevel="JDK_15" default="true" project-jdk-name="15" project-jdk-type="JavaSDK" />
+  <component name="ProjectType">
+    <option name="id" value="jpab" />
+  </component>
+</project>

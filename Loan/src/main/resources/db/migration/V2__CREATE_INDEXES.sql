@@ -1,0 +1,1 @@
+CREATE INDEX loan_index ON loan(borrower_id, status, is_fully_paid, due_date);

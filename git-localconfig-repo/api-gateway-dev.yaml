@@ -1,0 +1,77 @@
+spring:
+  cloud:
+    gateway:
+      default-filters:
+      - TokenRelay
+      - RateLimitFilter
+      routes:
+        - id: customer-service
+          uri: lb://customer
+          predicates:
+            - Path=/customer/**
+          filters:
+#            - name: RequestRateLimiter
+#              args:
+#                redis-rate-limiter.replenishRate: 10
+#                redis-rate-limiter.burstCapacity: 20
+#                #redis-rate-limiter.requestedTokens: 1
+#                key-resolver: "#{@userKeyResolver}"
+          
+            - name: CircuitBreaker
+              args:
+                name: customer-service
+                fallbackUri: forward:/customerFallBack
+            - RewritePath=/customer/(?<path>.*), /$\{path}
+        - id: transaction-service
+          uri: lb://transaction
+          predicates:
+            - Path=/transaction/**
+          filters:
+            - RateLimitFilter
+            - name: CircuitBreaker
+              args:
+                name: transaction-service
+                fallbackUri: forward:/transactionFallBack
+            - RewritePath=/transaction/(?<path>.*), /$\{path}
+
+        - id: employee-service
+          uri: lb://employee
+          predicates:
+            - Path=/employee/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: employee-service
+                fallbackUri: forward:/employeeFallBack
+            - RewritePath=/employee/(?<path>.*), /$\{path}
+
+        - id: issue-service
+          uri: lb://issue
+          predicates:
+            - Path=/issue/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: issue-service
+                fallbackUri: forward:/issueFallBack
+            - RewritePath=/issue/(?<path>.*), /$\{path}
+
+        - id: loan-service
+          uri: lb://loan
+          predicates:
+            - Path=/loan/**
+          filters:
+            - name: CircuitBreaker
+              args:
+                name: loan-service
+                fallbackUri: forward:/loanFallBack
+            - RewritePath=/loan/(?<path>.*), /$\{path}
+
+        - id: openapi
+          uri: http://localhost:${server.port}
+          predicates:
+            - Path=/v3/api-docs/**
+          filters:
+            - RewritePath=/v3/api-docs/(?<path>.*), /$\{path}/v3/api-docs
+
+              
