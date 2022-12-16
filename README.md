@@ -573,4 +573,4 @@ The main goal of these project is to improve and fine-tune my knowledge about ba
  * Monitiring and logging.
  * Deploying microservices in a service mesh like istio and etc.
  <br/>
- I am glad i emabrked on this project, it has widen my horizon.
+ I am glad i embarked on this project, it has widen my horizon.
