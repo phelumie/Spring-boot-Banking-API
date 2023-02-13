@@ -460,7 +460,7 @@ When a customer requests for a loan, the status of loan is *PENDING*. Then the l
 * Loan Worthiness Analysis
 #### Credit Score Rating
 After much research, i was able to come up with how it is done in the real world. The pictures below will briefly show and explain the criteria used:
-<br/>
+
 ![Screenshot (196)](https://user-images.githubusercontent.com/67476155/205946839-d98728d0-e94e-4565-b076-63ae2c22197f.png)
 
 ![Screenshot (211)](https://user-images.githubusercontent.com/67476155/205946874-356cd461-42ae-4b64-b3a1-e3baf8519621.png)
